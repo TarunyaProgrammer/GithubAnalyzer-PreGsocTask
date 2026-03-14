@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Repository {
+  id              BigInt    @id // GitHub repo ID — stable across renames
+  name            String    @db.VarChar(255)
+  fullName        String    @unique @db.VarChar(512) // owner/repo
+  description     String?
+  htmlUrl         String
+  starsCount      Int       @default(0)
+  forksCount      Int       @default(0)
+  openIssuesCount Int       @default(0)
+  isArchived      Boolean   @default(false)
+  isActive        Boolean   @default(true) // soft delete
+  primaryLanguage String?   @db.VarChar(100)
+  topics          String[]
+  licenseName     String?   @db.VarChar(255)
+  defaultBranch   String    @default("main")
+  lastPushedAt    DateTime?
+  githubCreatedAt DateTime
+  metadata        Json? // JSONB: flexible extra fields
+  syncedAt        DateTime // last successful sync
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  contributors  RepositoryContributor[]
+  languages     RepositoryLanguage[]
+  commitActivity CommitActivity[]
+
+  @@index([primaryLanguage])
+  @@index([starsCount(sort: Desc)])
+  @@index([lastPushedAt(sort: Desc)])
+  @@index([syncedAt])
+  @@index([isActive])
+}
+
+model Contributor {
+  id           BigInt  @id // GitHub user ID
+  login        String  @unique @db.VarChar(255)
+  avatarUrl    String?
+  htmlUrl      String?
+
+  repositories RepositoryContributor[]
+}
+
+model RepositoryContributor {
+  repositoryId  BigInt
+  contributorId BigInt
+  contributions Int
+
+  repository  Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  contributor Contributor @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+
+  @@id([repositoryId, contributorId])
+}
+
+model RepositoryLanguage {
+  repositoryId BigInt
+  language     String  @db.VarChar(100)
+  bytes        BigInt
+  percentage   Decimal @db.Decimal(5, 2)
+
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@id([repositoryId, language])
+}
+
+model CommitActivity {
+  repositoryId BigInt
+  weekStart    DateTime @db.Date
+  commitCount  Int
+
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@id([repositoryId, weekStart])
+}
