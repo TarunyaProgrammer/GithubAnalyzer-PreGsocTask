@@ -1,0 +1,129 @@
+<div class="list-container">
+  <!-- Header Stats Section -->
+  <section class="overview-section" *ngIf="stats">
+    <div class="stat-card">
+      <mat-icon color="primary">storage</mat-icon>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalRepositories | numberFormat }}</div>
+        <div class="stat-label">Repositories</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon color="accent">star</mat-icon>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalStars | numberFormat }}</div>
+        <div class="stat-label">Total Stars</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <mat-icon style="color: #4caf50;">group</mat-icon>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalContributors | numberFormat }}</div>
+        <div class="stat-label">Contributors</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filter & Search Section -->
+  <section class="filters-section">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search repositories</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Find by name, description, or topic">
+    </mat-form-field>
+
+    <div class="dropdowns">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Language</mat-label>
+        <mat-select [formControl]="languageControl">
+          <mat-option value="">All Languages</mat-option>
+          <mat-option *ngFor="let lang of stats?.languages" [value]="lang.language">
+            {{ lang.language }} ({{ lang.count }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [formControl]="sortControl">
+          <mat-option value="stars_desc">Most Stars</mat-option>
+          <mat-option value="updated_desc">Recently Updated</mat-option>
+          <mat-option value="forks_desc">Most Forks</mat-option>
+          <mat-option value="name_asc">Name (A-Z)</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </section>
+
+  <!-- Loading Skeletons -->
+  <section class="grid skeleton-grid" *ngIf="loading && repositories.length === 0">
+    <mat-card *ngFor="let item of SKELETON_ITEMS" class="repo-card skeleton-card">
+      <mat-card-header>
+        <app-skeleton width="60%" height="24px"></app-skeleton>
+      </mat-card-header>
+      <mat-card-content>
+        <app-skeleton width="100%" height="16px" style="margin-top: 12px;"></app-skeleton>
+        <app-skeleton width="80%" height="16px" style="margin-top: 8px;"></app-skeleton>
+        <div class="skeleton-footer" style="margin-top: 24px; display: flex; gap: 16px;">
+          <app-skeleton width="60px" height="20px"></app-skeleton>
+          <app-skeleton width="40px" height="20px"></app-skeleton>
+          <app-skeleton width="40px" height="20px"></app-skeleton>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <!-- Repo Grid -->
+  <section class="grid" *ngIf="!loading || repositories.length > 0">
+    <mat-card *ngFor="let repo of repositories" class="repo-card interactive" (click)="viewRepository(repo.id)">
+      <mat-card-header>
+        <mat-card-title class="repo-title">
+          <mat-icon class="repo-icon">book</mat-icon>
+          <span class="text-truncate">{{ repo.name }}</span>
+        </mat-card-title>
+        <mat-card-subtitle class="repo-org">{{ repo.fullName.split('/')[0] }}</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p class="description">{{ repo.description || 'No description provided.' }}</p>
+        
+        <div class="topics" *ngIf="repo.topics.length > 0">
+          <span class="topic-chip" *ngFor="let topic of repo.topics.slice(0, 3)">{{ topic }}</span>
+          <span class="topic-chip" *ngIf="repo.topics.length > 3">+{{ repo.topics.length - 3 }}</span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="card-footer">
+        <app-language-dot [language]="repo.primaryLanguage" *ngIf="repo.primaryLanguage"></app-language-dot>
+        <div class="spacer"></div>
+        <span class="stat" title="Stars">
+          <mat-icon>star_border</mat-icon>
+          {{ repo.starsCount | numberFormat }}
+        </span>
+        <span class="stat" title="Forks">
+          <mat-icon>call_split</mat-icon>
+          {{ repo.forksCount | numberFormat }}
+        </span>
+        <span class="updated-time" title="Last updated">
+          Updated {{ repo.lastPushedAt | relativeTime }}
+        </span>
+      </mat-card-actions>
+    </mat-card>
+  </section>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && repositories.length === 0">
+    <mat-icon>search_off</mat-icon>
+    <h3>No repositories found</h3>
+    <p>Try adjusting your search or filters.</p>
+    <button mat-stroked-button color="primary" (click)="searchControl.setValue(''); languageControl.setValue('')">Clear Filters</button>
+  </div>
+
+  <!-- Load More -->
+  <div class="load-more-container" *ngIf="hasMore && repositories.length > 0">
+    <button mat-stroked-button color="primary" [disabled]="loadingMore" (click)="onLoadMore()">
+      <mat-icon *ngIf="loadingMore">hourglass_empty</mat-icon>
+      {{ loadingMore ? 'Loading...' : 'Load More' }}
+    </button>
+  </div>
+</div>
