@@ -3,7 +3,7 @@ services:
   - type: web
     name: webiu-backend
     env: node
-    plan: free # Can be upgraded to 'starter' for more performance
+    plan: free
     buildCommand: cd backend && npm install && npx prisma generate && npm run build
     startCommand: cd backend && npm run start:prod
     envVars:
@@ -21,19 +21,20 @@ services:
       - key: PORT
         value: 3000
       - key: GITHUB_TOKEN
-        sync: false # Set manually in Render dashboard
+        sync: false
       - key: GITHUB_ORG
-        sync: false # Set manually in Render dashboard
+        sync: false
       - key: GITHUB_WEBHOOK_SECRET
-        sync: false # Set manually in Render dashboard
+        sync: false
+
+  # Redis Instance
+  - type: redis
+    name: webiu-redis
+    plan: free # Render Free tier Redis (shared)
+    ipAllowList: [] # Only allow internal connections
 
 databases:
   - name: webiu-db
     plan: free # Render Free tier Postgres
     databaseName: webiu
     user: webiu
-
-redis:
-  - name: webiu-redis
-    plan: free # Render Free tier Redis (shared)
-    ipAllowList: [] # Only allow internal connections
