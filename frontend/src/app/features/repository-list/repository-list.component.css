@@ -202,3 +202,55 @@ mat-card-content {
   justify-content: center;
   padding: 24px 0;
 }
+
+.analyze-section {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.analyze-field {
+  flex: 1;
+}
+
+.analyze-btn {
+  height: 56px;
+  margin-top: -1.25em; /* Align with material input */
+}
+
+.analyze-message {
+  margin-top: -16px;
+  margin-bottom: 24px;
+  color: #2e7d32;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.difficulty-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.difficulty-badge.beginner {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.difficulty-badge.intermediate {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.difficulty-badge.advanced {
+  background-color: #ffebee;
+  color: #c62828;
+}

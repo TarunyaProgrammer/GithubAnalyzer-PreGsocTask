@@ -107,6 +107,75 @@
               </div>
             </div>
           </mat-tab>
+
+          <!-- Intelligence Analysis Tab -->
+          <mat-tab label="Intelligence Analysis">
+            <div class="tab-content analysis-tab">
+              <div class="skeleton-chart" *ngIf="loadingAnalysis && !analyzing">
+                <app-skeleton width="100%" height="200px"></app-skeleton>
+              </div>
+
+              <!-- Unanalyzed State -->
+              <div class="empty-analysis" *ngIf="!loadingAnalysis && !analysisReport && !analyzing">
+                <mat-icon>analytics</mat-icon>
+                <h3>No Intelligence Report Available</h3>
+                <p>This repository hasn't been analyzed yet. Run an analysis to generate activity and complexity scores.</p>
+                <button mat-flat-button color="primary" (click)="analyzeNow()">Run Analysis</button>
+              </div>
+
+              <!-- Analyzing State -->
+              <div class="empty-analysis" *ngIf="analyzing">
+                <mat-icon class="spin">sync</mat-icon>
+                <h3>Analyzing Repository...</h3>
+                <p>This will take a few moments. We are calculating metrics and determining learning difficulty.</p>
+              </div>
+
+              <!-- Analysis Report -->
+              <div class="analysis-report" *ngIf="analysisReport && !analyzing">
+                <div class="report-header">
+                  <h2>Intelligence Report</h2>
+                  <span class="difficulty-badge" [ngClass]="analysisReport.scores.learningDifficulty?.toLowerCase() || ''">
+                    {{ analysisReport.scores.learningDifficulty || 'Unknown' }}
+                  </span>
+                </div>
+                <p class="generated-at">Generated {{ analysisReport.generatedAt | relativeTime }}</p>
+
+                <div class="scores-grid">
+                  <div class="score-card">
+                    <h4>Activity Score</h4>
+                    <div class="score-value">{{ analysisReport.scores.activityScore | number:'1.0-1' }}<span class="max">/100</span></div>
+                    <div class="score-bar">
+                      <div class="fill" [style.width.%]="analysisReport.scores.activityScore"></div>
+                    </div>
+                    <p class="formula-note">{{ analysisReport.formulas.activityScore }}</p>
+                  </div>
+
+                  <div class="score-card">
+                    <h4>Complexity Score</h4>
+                    <div class="score-value">{{ analysisReport.scores.complexityScore | number:'1.0-1' }}<span class="max">/100</span></div>
+                    <div class="score-bar">
+                      <div class="fill complexity" [style.width.%]="analysisReport.scores.complexityScore"></div>
+                    </div>
+                    <p class="formula-note">{{ analysisReport.formulas.complexityScore }}</p>
+                  </div>
+                </div>
+
+                <div class="breakdown-section">
+                  <h3>Metrics Breakdown</h3>
+                  <div class="breakdown-grid">
+                    <div class="b-item"><span>Recent Commits (12w)</span> <strong>{{ analysisReport.breakdown.recentCommits12w }}</strong></div>
+                    <div class="b-item"><span>Contributors</span> <strong>{{ analysisReport.breakdown.contributorCount }}</strong></div>
+                    <div class="b-item"><span>Total Open Issues</span> <strong>{{ analysisReport.breakdown.openIssues }}</strong></div>
+                    <div class="b-item"><span>Primary Languages</span> <strong>{{ analysisReport.breakdown.languageCount }}</strong></div>
+                    <div class="b-item"><span>Repository Size</span> <strong>{{ analysisReport.breakdown.repoSizeKB | number }} KB</strong></div>
+                    <div class="b-item"><span>Topics Documented</span> <strong>{{ analysisReport.breakdown.topicCount }}</strong></div>
+                    <div class="b-item"><span>Dependency Files</span> <strong>{{ analysisReport.breakdown.hasDependencyFile ? 'Yes' : 'No' }}</strong></div>
+                    <div class="b-item"><span>Archived Status</span> <strong>{{ analysisReport.breakdown.isArchived ? 'Archived' : 'Active' }}</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
         </mat-tab-group>
       </mat-card>
 

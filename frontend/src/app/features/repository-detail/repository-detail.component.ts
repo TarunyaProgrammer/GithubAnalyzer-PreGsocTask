@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
-import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 
 import { 
@@ -15,7 +15,8 @@ import {
   Repository, 
   Contributor, 
   Language, 
-  CommitActivity 
+  CommitActivity,
+  AnalysisReport
 } from '../../core/services/repository.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { NumberFormatPipe } from '../../shared/pipes/number-format.pipe';
@@ -33,14 +34,11 @@ import { SkeletonComponent } from '../../shared/components/skeleton.component';
     MatButtonModule,
     MatTabsModule,
     MatDividerModule,
-    BaseChartDirective,
+    NgChartsModule,
     RelativeTimePipe,
     NumberFormatPipe,
-    FileSizePipe,
-    LanguageDotComponent,
     SkeletonComponent
   ],
-  providers: [provideCharts(withDefaultRegisterables())],
   templateUrl: './repository-detail.component.html',
   styleUrls: ['./repository-detail.component.css']
 })
@@ -50,9 +48,12 @@ export class RepositoryDetailComponent implements OnInit, OnDestroy {
   contributors: Contributor[] = [];
   languages: Language[] = [];
   activity: CommitActivity[] = [];
+  analysisReport: AnalysisReport | null = null;
 
   loadingRepo = true;
   loadingExtra = true;
+  loadingAnalysis = true;
+  analyzing = false;
   error = false;
 
   private destroy$ = new Subject<void>();
@@ -137,6 +138,7 @@ export class RepositoryDetailComponent implements OnInit, OnDestroy {
         next: (repo) => {
           this.repo = repo;
           this.loadingRepo = false;
+          this.loadAnalysisReport();
         },
         error: () => {
           this.error = true;
@@ -179,6 +181,37 @@ export class RepositoryDetailComponent implements OnInit, OnDestroy {
       error: () => {
         // We don't fail the whole page if extra data fails
         this.loadingExtra = false;
+      }
+    });
+  }
+
+  loadAnalysisReport(): void {
+    this.loadingAnalysis = true;
+    this.repositoryService.getAnalysisReport(this.repositoryId).subscribe({
+      next: (report) => {
+        this.analysisReport = report;
+        this.loadingAnalysis = false;
+      },
+      error: () => {
+        this.analysisReport = null;
+        this.loadingAnalysis = false;
+      }
+    });
+  }
+
+  analyzeNow(): void {
+    if (!this.repo) return;
+    this.analyzing = true;
+    this.repositoryService.analyzeRepositories([this.repo.htmlUrl]).subscribe({
+      next: () => {
+        // Poll for completion or just wait a few seconds and reload
+        setTimeout(() => {
+          this.loadAnalysisReport();
+          this.analyzing = false;
+        }, 5000);
+      },
+      error: () => {
+        this.analyzing = false;
       }
     });
   }

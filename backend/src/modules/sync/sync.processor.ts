@@ -4,6 +4,7 @@ import type { Job } from 'bull';
 import { PrismaService } from '../../prisma';
 import { GitHubService } from '../github';
 import { CacheService, CACHE_KEYS } from '../cache';
+import { AnalyzerService } from '../analyzer';
 import { ProcessingService } from './processing.service';
 import { SyncJobPayload, SYNC_QUEUE_NAME } from './sync.service';
 
@@ -16,6 +17,7 @@ export class SyncProcessor {
     private readonly github: GitHubService,
     private readonly cache: CacheService,
     private readonly processing: ProcessingService,
+    private readonly analyzer: AnalyzerService,
   ) {}
 
   @Process('sync-repo')
@@ -120,6 +122,9 @@ export class SyncProcessor {
         `Synced "${repoFullName}": ${contributors.length} contributors, ` +
           `${languagePayloads.length} languages, ${activityPayloads.length} weeks activity`,
       );
+
+      // 8. Run analyzer scores
+      await this.analyzer.analyzeAndSave(repoId);
     } catch (err) {
       this.logger.error(
         `Failed to sync "${repoFullName}": ${(err as Error).message}`,

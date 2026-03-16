@@ -61,6 +61,9 @@ export interface RepositoryResponseDto {
   forksCount: number;
   openIssuesCount: number;
   isArchived: boolean;
+  activityScore: number | null;
+  complexityScore: number | null;
+  learningDifficulty: string | null;
   primaryLanguage: string | null;
   topics: string[];
   licenseName: string | null;
@@ -106,4 +109,37 @@ export interface StatsResponseDto {
   totalContributors: number;
   languages: Array<{ language: string; count: number }>;
   topRepositories: RepositoryResponseDto[];
+}
+
+import { IsArray, IsUrl } from 'class-validator';
+
+export class AnalyzeUrlsDto {
+  @IsArray()
+  @IsUrl({}, { each: true })
+  urls!: string[];
+}
+
+export interface AnalysisReportResponseDto {
+  repository: string;
+  generatedAt: string;
+  scores: {
+    activityScore: number | null;
+    complexityScore: number | null;
+    learningDifficulty: string | null;
+  };
+  breakdown: {
+    recentCommits12w: number;
+    contributorCount: number;
+    languageCount: number;
+    repoSizeKB: number;
+    openIssues: number;
+    topicCount: number;
+    isArchived: boolean;
+    hasDependencyFile: boolean;
+  };
+  formulas: {
+    activityScore: string;
+    complexityScore: string;
+    learningDifficulty: string;
+  };
 }

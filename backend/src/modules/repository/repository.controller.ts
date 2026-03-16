@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   Param,
   Query,
   NotFoundException,
@@ -12,12 +14,14 @@ import { RepositoryService } from './repository.service';
 import {
   RepoQueryDto,
   SearchQueryDto,
+  AnalyzeUrlsDto,
   RepositoryResponseDto,
   ContributorResponseDto,
   LanguageResponseDto,
   CommitActivityResponseDto,
   PaginatedResponseDto,
   StatsResponseDto,
+  AnalysisReportResponseDto,
 } from './repository.dto';
 
 @Controller('api/repos')
@@ -89,5 +93,21 @@ export class RepositoryController {
   @Get(':id/activity')
   async getActivity(@Param('id') id: string): Promise<CommitActivityResponseDto[]> {
     return this.repositoryService.getActivity(id);
+  }
+
+  /**
+   * POST /api/repos/analyze - Queue custom repository URLs for analysis
+   */
+  @Post('analyze')
+  async analyzeRepositories(@Body() body: AnalyzeUrlsDto): Promise<{ message: string; queued: number }> {
+    return this.repositoryService.analyzeRepositories(body.urls);
+  }
+
+  /**
+   * GET /api/repos/:id/report - Get structured analysis report
+   */
+  @Get(':id/report')
+  async getAnalysisReport(@Param('id') id: string): Promise<AnalysisReportResponseDto> {
+    return this.repositoryService.getAnalysisReport(id);
   }
 }

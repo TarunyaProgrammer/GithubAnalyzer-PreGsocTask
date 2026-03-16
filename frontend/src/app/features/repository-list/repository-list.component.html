@@ -24,6 +24,24 @@
     </div>
   </section>
 
+  <!-- Analyze Custom Repositories Section -->
+  <section class="analyze-section">
+    <mat-form-field appearance="outline" class="analyze-field">
+      <mat-label>Analyze Custom Repositories (comma-separated URLs)</mat-label>
+      <mat-icon matPrefix>analytics</mat-icon>
+      <input matInput [formControl]="analyzeControl" placeholder="https://github.com/org/repo1, https://github.com/org/repo2">
+    </mat-form-field>
+    <button mat-flat-button color="primary" class="analyze-btn" [disabled]="!analyzeControl.value || analyzing" (click)="analyzeRepos()">
+      <mat-icon *ngIf="!analyzing">play_arrow</mat-icon>
+      <mat-icon *ngIf="analyzing">hourglass_empty</mat-icon>
+      {{ analyzing ? 'Queuing...' : 'Analyze' }}
+    </button>
+  </section>
+  <div class="analyze-message" *ngIf="analyzeMessage">
+    <mat-icon>info</mat-icon>
+    {{ analyzeMessage }}
+  </div>
+
   <!-- Filter & Search Section -->
   <section class="filters-section">
     <mat-form-field appearance="outline" class="search-field">
@@ -80,6 +98,9 @@
         <mat-card-title class="repo-title">
           <mat-icon class="repo-icon">book</mat-icon>
           <span class="text-truncate">{{ repo.name }}</span>
+          <span class="difficulty-badge" *ngIf="repo.learningDifficulty" [ngClass]="repo.learningDifficulty.toLowerCase()">
+            {{ repo.learningDifficulty }}
+          </span>
         </mat-card-title>
         <mat-card-subtitle class="repo-org">{{ repo.fullName.split('/')[0] }}</mat-card-subtitle>
       </mat-card-header>

@@ -12,6 +12,9 @@ export interface Repository {
   forksCount: number;
   openIssuesCount: number;
   isArchived: boolean;
+  activityScore: number | null;
+  complexityScore: number | null;
+  learningDifficulty: string | null;
   primaryLanguage: string | null;
   topics: string[];
   licenseName: string | null;
@@ -57,6 +60,31 @@ export interface Language {
 export interface CommitActivity {
   weekStart: string;
   commitCount: number;
+}
+
+export interface AnalysisReport {
+  repository: string;
+  generatedAt: string;
+  scores: {
+    activityScore: number | null;
+    complexityScore: number | null;
+    learningDifficulty: string | null;
+  };
+  breakdown: {
+    recentCommits12w: number;
+    contributorCount: number;
+    languageCount: number;
+    repoSizeKB: number;
+    openIssues: number;
+    topicCount: number;
+    isArchived: boolean;
+    hasDependencyFile: boolean;
+  };
+  formulas: {
+    activityScore: string;
+    complexityScore: string;
+    learningDifficulty: string;
+  };
 }
 
 @Injectable({
@@ -109,5 +137,13 @@ export class RepositoryService {
 
   getActivity(id: string): Observable<CommitActivity[]> {
     return this.http.get<CommitActivity[]>(`${this.apiUrl}/${id}/activity`);
+  }
+
+  analyzeRepositories(urls: string[]): Observable<{ message: string; queued: number }> {
+    return this.http.post<{ message: string; queued: number }>(`${this.apiUrl}/analyze`, { urls });
+  }
+
+  getAnalysisReport(id: string): Observable<AnalysisReport> {
+    return this.http.get<AnalysisReport>(`${this.apiUrl}/${id}/report`);
   }
 }

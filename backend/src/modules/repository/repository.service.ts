@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
+import { SyncService } from '../sync/sync.service';
+import { AnalyzerService, AnalysisResult } from '../analyzer/analyzer.service';
 import { CacheService, CACHE_KEYS, CACHE_TTLS } from '../cache';
 import {
   RepoQueryDto,
@@ -9,6 +11,7 @@ import {
   CommitActivityResponseDto,
   PaginatedResponseDto,
   StatsResponseDto,
+  AnalysisReportResponseDto,
 } from './repository.dto';
 import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
@@ -20,6 +23,8 @@ export class RepositoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
+    private readonly sync: SyncService,
+    private readonly analyzer: AnalyzerService,
   ) {}
 
   /**
@@ -36,6 +41,9 @@ export class RepositoryService {
       forksCount: repo['forksCount'] as number,
       openIssuesCount: repo['openIssuesCount'] as number,
       isArchived: repo['isArchived'] as boolean,
+      activityScore: (repo['activityScore'] as number) ?? null,
+      complexityScore: (repo['complexityScore'] as number) ?? null,
+      learningDifficulty: (repo['learningDifficulty'] as string) ?? null,
       primaryLanguage: (repo['primaryLanguage'] as string) ?? null,
       topics: (repo['topics'] as string[]) ?? [],
       licenseName: (repo['licenseName'] as string) ?? null,
@@ -86,6 +94,9 @@ export class RepositoryService {
         forksCount: true,
         openIssuesCount: true,
         isArchived: true,
+        activityScore: true,
+        complexityScore: true,
+        learningDifficulty: true,
         primaryLanguage: true,
         topics: true,
         licenseName: true,
@@ -149,6 +160,9 @@ export class RepositoryService {
         forksCount: true,
         openIssuesCount: true,
         isArchived: true,
+        activityScore: true,
+        complexityScore: true,
+        learningDifficulty: true,
         primaryLanguage: true,
         topics: true,
         licenseName: true,
@@ -200,6 +214,9 @@ export class RepositoryService {
         forksCount: true,
         openIssuesCount: true,
         isArchived: true,
+        activityScore: true,
+        complexityScore: true,
+        learningDifficulty: true,
         primaryLanguage: true,
         topics: true,
         licenseName: true,
@@ -347,6 +364,9 @@ export class RepositoryService {
           forksCount: true,
           openIssuesCount: true,
           isArchived: true,
+          activityScore: true,
+          complexityScore: true,
+          learningDifficulty: true,
           primaryLanguage: true,
           topics: true,
           licenseName: true,
@@ -394,4 +414,64 @@ export class RepositoryService {
         return { starsCount: 'desc' };
     }
   }
+
+  /**
+   * Queue custom repository URLs for analysis.
+   */
+  async analyzeRepositories(urls: string[]): Promise<{ message: string; queued: number }> {
+    let queued = 0;
+    for (const url of urls) {
+      try {
+        const match = url.match(/github\.com\/([^/]+\/[^/]+)/);
+        if (match && match[1]) {
+          let fullName = match[1];
+          if (fullName.endsWith('.git')) fullName = fullName.slice(0, -4);
+          
+          await this.sync.enqueueRepoSync(fullName, 'manual-analyze', 1);
+          queued++;
+        }
+      } catch (err) {
+        this.logger.error(`Failed to enqueue manual analysis for URL: ${url}`);
+      }
+    }
+    return { message: `Queued ${queued} repositories for analysis.`, queued };
+  }
+
+  /**
+   * Get structured analysis report.
+   */
+  async getAnalysisReport(id: string): Promise<AnalysisReportResponseDto> {
+    const repoId = BigInt(id);
+    const repo = await this.prisma.repository.findUnique({
+      where: { id: repoId, isActive: true },
+      include: {
+        contributors: true,
+        languages: true,
+        commitActivity: { orderBy: { weekStart: 'desc' }, take: 12 },
+      },
+    });
+
+    if (!repo) {
+      throw new NotFoundException(`Repository with ID ${id} not found`);
+    }
+
+    const analysis = this.analyzer.compute(repo as any);
+
+    return {
+      repository: repo.fullName,
+      generatedAt: new Date().toISOString(),
+      scores: {
+        activityScore: repo.activityScore,
+        complexityScore: repo.complexityScore,
+        learningDifficulty: repo.learningDifficulty,
+      },
+      breakdown: analysis.breakdown,
+      formulas: {
+        activityScore: 'min(commits/52,1)×40 + min(contributors/20,1)×30 + issues×20 + stars×10',
+        complexityScore: 'min(languages/5,1)×40 + min(sizeKB/10000,1)×30 + deps×20 + topics×10',
+        learningDifficulty: 'combined=(activity×0.4)+(complexity×0.6); <35=Beginner, <65=Intermediate, ≥65=Advanced',
+      },
+    };
+  }
 }
+

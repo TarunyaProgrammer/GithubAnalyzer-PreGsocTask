@@ -46,6 +46,10 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
   searchControl = new FormControl('');
   sortControl = new FormControl('stars_desc');
   languageControl = new FormControl('');
+  analyzeControl = new FormControl('');
+
+  analyzing = false;
+  analyzeMessage = '';
 
   private destroy$ = new Subject<void>();
   readonly SKELETON_ITEMS = Array(12).fill(0);
@@ -164,5 +168,27 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
 
   viewRepository(id: string): void {
     this.router.navigate(['/repo', id]);
+  }
+
+  analyzeRepos(): void {
+    const urls = this.analyzeControl.value?.split(',').map(url => url.trim()).filter(url => url);
+    if (!urls || urls.length === 0) return;
+    
+    this.analyzing = true;
+    this.analyzeMessage = '';
+    
+    this.repositoryService.analyzeRepositories(urls).subscribe({
+      next: (res) => {
+        this.analyzing = false;
+        this.analyzeMessage = res.message;
+        this.analyzeControl.setValue('');
+        setTimeout(() => this.analyzeMessage = '', 5000);
+      },
+      error: () => {
+        this.analyzing = false;
+        this.analyzeMessage = 'Failed to queue analysis. Please check your URLs.';
+        setTimeout(() => this.analyzeMessage = '', 5000);
+      }
+    });
   }
 }
