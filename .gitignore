@@ -43,3 +43,6 @@ backend/dist/
 
 # Prisma
 backend/prisma/*.db
+
+# Deployment instructions
+DEPLOYMENT.md
