@@ -78,7 +78,7 @@ GITHUB_WEBHOOK_SECRET=your_webhook_secret
 ### 2. Launch Services
 ```bash
 # Start Database and Redis
-docker compose up -d db redis
+docker compose up -d postgres redis
 
 # Setup Database Schema and Seed Data
 cd backend
@@ -87,7 +87,7 @@ npx prisma db push
 npm run prisma:seed
 
 # Start Applications
-# Backed (Port 3000)
+# Backend (Port 3000)
 npm run start:dev
 
 # Frontend (Port 4200)
@@ -97,6 +97,9 @@ npm start
 ```
 
 ---
+
+> [!NOTE]
+> **GitHub Organization Locking**: By default, the `GITHUB_ORG` in your `.env` prevents analyzing repositories outside of that organization. To analyze any public repository, ensure the backend logic in `GitHubService` is adjusted to parse owners dynamically.
 
 ## 📈 Analysis Methodology
 
