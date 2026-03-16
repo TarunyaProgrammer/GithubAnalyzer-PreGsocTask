@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Repository {
   id: string;
@@ -91,7 +92,7 @@ export interface AnalysisReport {
   providedIn: 'root'
 })
 export class RepositoryService {
-  private readonly apiUrl = 'http://localhost:3000/api/repos';
+  private readonly apiUrl = `${environment.apiUrl}/repos`;
 
   constructor(private http: HttpClient) {}
 

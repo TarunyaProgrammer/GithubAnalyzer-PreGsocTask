@@ -16,7 +16,11 @@ async function bootstrap(): Promise<void> {
   app.use(
     '/webhooks',
     bodyParser.json({
-      verify: (req: import('http').IncomingMessage, _res: import('http').ServerResponse, buf: Buffer) => {
+      verify: (
+        req: import('http').IncomingMessage,
+        _res: import('http').ServerResponse,
+        buf: Buffer,
+      ) => {
         (req as unknown as { rawBody: Buffer }).rawBody = buf;
       },
     }),
@@ -39,14 +43,26 @@ async function bootstrap(): Promise<void> {
 
   // CORS for Angular frontend
   app.enableCors({
-    origin: ['http://localhost:4200', 'http://localhost:4201'],
-    methods: ['GET', 'POST'],
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow localhost for development and any vercel.app subdomain for production
+      const allowedPatterns = [/^http:\/\/localhost:\d+$/, /\.vercel\.app$/];
+
+      if (!origin || allowedPatterns.some((pattern) => pattern.test(origin))) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   });
 
-  const port = process.env['PORT'] ?? 3000;
-  await app.listen(port);
+  const port = process.env['PORT'] || 3000;
+  await app.listen(port, '0.0.0.0');
   logger.log(`🚀 WebiU Backend running on http://localhost:${port}`);
 }
 
-bootstrap();
+void bootstrap();
