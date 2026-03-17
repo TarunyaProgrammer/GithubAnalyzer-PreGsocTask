@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SyncService } from './sync.service';
 import { GitHubService } from '../github';
+import { DiscoveryService } from './discovery.service';
 
 @Injectable()
 export class SyncScheduler {
@@ -10,7 +11,17 @@ export class SyncScheduler {
   constructor(
     private readonly syncService: SyncService,
     private readonly githubService: GitHubService,
+    private readonly discoveryService: DiscoveryService,
   ) {}
+
+  /**
+   * Every 12 hours: Discover new repositories in the organization.
+   */
+  @Cron('0 */12 * * *')
+  async discoverRepos(): Promise<void> {
+    this.logger.log('Starting scheduled repository discovery');
+    await this.discoveryService.discoverAndEnqueue();
+  }
 
   /**
    * Every 6 hours: sync repos whose syncedAt is older than 6 hours.

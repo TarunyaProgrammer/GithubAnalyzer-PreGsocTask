@@ -7,6 +7,7 @@ import { SyncService, SYNC_QUEUE_NAME } from './sync.service';
 import { SyncProcessor } from './sync.processor';
 import { ProcessingService } from './processing.service';
 import { SyncScheduler } from './sync.scheduler';
+import { DiscoveryService } from './discovery.service';
 
 @Module({
   imports: [
@@ -21,7 +22,13 @@ import { SyncScheduler } from './sync.scheduler';
     GitHubModule,
     AnalyzerModule,
   ],
-  providers: [SyncService, SyncProcessor, ProcessingService, SyncScheduler],
-  exports: [SyncService],
+  providers: [
+    SyncService,
+    SyncProcessor,
+    ProcessingService,
+    SyncScheduler,
+    DiscoveryService,
+  ],
+  exports: [SyncService, DiscoveryService],
 })
 export class SyncModule {}
