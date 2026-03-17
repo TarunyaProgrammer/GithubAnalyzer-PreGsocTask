@@ -6,10 +6,8 @@ services:
     rootDir: backend # Tell Render the app is in the backend/ folder
     plan: free
     buildCommand: npm install && npm run build
-    startCommand: npm run start:prod
+    startCommand: cd backend && NODE_ENV=production npm run start:prod
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: DATABASE_URL
         fromDatabase:
           name: webiu-db
