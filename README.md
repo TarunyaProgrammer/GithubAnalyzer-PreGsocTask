@@ -1,6 +1,6 @@
-# WebiU: GitHub Repository Intelligence Analyzer
+# RepoArg: GitHub Repository Intelligence Analyzer
 
-**WebiU** is a production-grade ingestion and analytical engine designed to provide deep insights into GitHub repositories. It combines a high-performance sync pipeline with an intelligent analyzer to classify repositories by activity, complexity, and learning difficulty.
+**RepoArg** is a production-grade ingestion and analytical engine designed to provide deep insights into GitHub repositories. It combines a high-performance sync pipeline with an intelligent analyzer to classify repositories by activity, complexity, and learning difficulty.
 
 Built for the **C2SI GSoC 2026 Pre-Selection Task**, this project demonstrates a robust, scalable architecture using modern full-stack technologies.
 
