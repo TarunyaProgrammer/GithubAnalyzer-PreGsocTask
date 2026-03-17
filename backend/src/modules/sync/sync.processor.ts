@@ -24,28 +24,34 @@ export class SyncProcessor {
 
   @Process('sync-repo')
   async handleSyncJob(job: Job<SyncJobPayload>): Promise<void> {
-    const { repoName, repoFullName, eventType } = job.data;
+    const { repoName: jobRepoName, repoFullName, eventType } = job.data;
     const org = this.configService.get<string>('GITHUB_ORG', 'c2siorg');
+    
+    // Parse owner and repoName from fullName
+    const [owner, name] = repoFullName.includes('/')
+      ? repoFullName.split('/')
+      : [org, jobRepoName];
+
     this.logger.log(
-      `Processing sync job: ${repoFullName} (event: ${eventType})`,
+      `Processing sync job: ${owner}/${name} (event: ${eventType})`,
     );
 
     try {
       // 1. Fetch repo metadata via GraphQL
-      const repoData = await this.github.fetchSingleRepo(repoName);
+      const repoData = await this.github.fetchSingleRepo(name, owner);
       if (!repoData) {
-        this.logger.warn(`Repo "${repoName}" not found on GitHub — skipping`);
+        this.logger.warn(`Repo "${owner}/${name}" not found on GitHub — skipping`);
         return;
       }
 
       // 2. Fetch contributors via REST (ETag cached)
-      const contributors = await this.github.fetchContributors(repoName);
+      const contributors = await this.github.fetchContributors(name, owner);
 
       // 3. Fetch languages via REST (ETag cached)
-      const languages = await this.github.fetchLanguages(repoName);
+      const languages = await this.github.fetchLanguages(name, owner);
 
       // 4. Fetch commit activity via REST
-      const activity = await this.github.fetchCommitActivity(repoName);
+      const activity = await this.github.fetchCommitActivity(name, owner);
 
       // 5. Process all data
       const repoUpsert = this.processing.processRepository(repoData);

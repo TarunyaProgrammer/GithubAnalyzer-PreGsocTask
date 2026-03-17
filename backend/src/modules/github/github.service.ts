@@ -194,12 +194,16 @@ export class GitHubService {
   /**
    * Fetch a single repository using GraphQL.
    */
-  async fetchSingleRepo(repoName: string): Promise<GitHubGraphQLRepo | null> {
+  async fetchSingleRepo(
+    repoName: string,
+    owner?: string,
+  ): Promise<GitHubGraphQLRepo | null> {
     this.checkCircuitBreaker();
+    const repoOwner = owner || this.org;
 
     try {
       const query = `query {
-        repository(owner: "${this.org}", name: "${repoName}") {
+        repository(owner: "${repoOwner}", name: "${repoName}") {
           id
           databaseId
           name
@@ -235,11 +239,15 @@ export class GitHubService {
   /**
    * Fetch contributors for a repository using REST API with ETag caching.
    */
-  async fetchContributors(repoName: string): Promise<GitHubContributor[]> {
+  async fetchContributors(
+    repoName: string,
+    owner?: string,
+  ): Promise<GitHubContributor[]> {
     this.checkCircuitBreaker();
+    const repoOwner = owner || this.org;
 
-    const etagKey = `etag:contributors:${this.org}/${repoName}`;
-    const dataKey = `contributors:data:${this.org}/${repoName}`;
+    const etagKey = `etag:contributors:${repoOwner}/${repoName}`;
+    const dataKey = `contributors:data:${repoOwner}/${repoName}`;
 
     try {
       // Check for stored ETag
@@ -250,7 +258,7 @@ export class GitHubService {
       }
 
       const response = await this.restClient.repos.listContributors({
-        owner: this.org,
+        owner: repoOwner,
         repo: repoName,
         per_page: 100,
         headers,
@@ -307,11 +315,15 @@ export class GitHubService {
   /**
    * Fetch languages for a repository using REST API with ETag caching.
    */
-  async fetchLanguages(repoName: string): Promise<GitHubLanguages> {
+  async fetchLanguages(
+    repoName: string,
+    owner?: string,
+  ): Promise<GitHubLanguages> {
     this.checkCircuitBreaker();
+    const repoOwner = owner || this.org;
 
-    const etagKey = `etag:languages:${this.org}/${repoName}`;
-    const dataKey = `languages:data:${this.org}/${repoName}`;
+    const etagKey = `etag:languages:${repoOwner}/${repoName}`;
+    const dataKey = `languages:data:${repoOwner}/${repoName}`;
 
     try {
       const storedEtag = await this.cacheService.get<string>(etagKey);
@@ -321,7 +333,7 @@ export class GitHubService {
       }
 
       const response = await this.restClient.repos.listLanguages({
-        owner: this.org,
+        owner: repoOwner,
         repo: repoName,
         headers,
       });
@@ -362,12 +374,16 @@ export class GitHubService {
   /**
    * Fetch commit activity (52 weeks) for a repository.
    */
-  async fetchCommitActivity(repoName: string): Promise<GitHubCommitActivity[]> {
+  async fetchCommitActivity(
+    repoName: string,
+    owner?: string,
+  ): Promise<GitHubCommitActivity[]> {
     this.checkCircuitBreaker();
+    const repoOwner = owner || this.org;
 
     try {
       const response = await this.restClient.repos.getCommitActivityStats({
-        owner: this.org,
+        owner: repoOwner,
         repo: repoName,
       });
 

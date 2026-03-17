@@ -37,9 +37,38 @@
       {{ analyzing ? 'Queuing...' : 'Analyze' }}
     </button>
   </section>
-  <div class="analyze-message" *ngIf="analyzeMessage">
-    <mat-icon>info</mat-icon>
-    {{ analyzeMessage }}
+  <div class="analyze-actions">
+    <div class="analyze-message" *ngIf="analyzeMessage">
+      <mat-icon>info</mat-icon>
+      {{ analyzeMessage }}
+    </div>
+    <div class="spacer"></div>
+    <button mat-button class="webhook-toggle" (click)="toggleWebhookInfo()">
+      <mat-icon>{{ showWebhookInfo ? 'expand_less' : 'add_link' }}</mat-icon>
+      {{ showWebhookInfo ? 'Hide Instructions' : 'Add via Webhook' }}
+    </button>
+  </div>
+
+  <!-- Webhook Instructions Panel -->
+  <div class="webhook-panel mat-elevation-z2" *ngIf="showWebhookInfo">
+    <div class="panel-header">
+      <mat-icon>webhook</mat-icon>
+      <h3>Configure GitHub Webhook</h3>
+    </div>
+    <div class="panel-body">
+      <p>To enable real-time updates for your repository, add a webhook in your GitHub Repository settings:</p>
+      <ol>
+        <li>Go to <strong>Settings</strong> > <strong>Webhooks</strong> > <strong>Add webhook</strong>.</li>
+        <li><strong>Payload URL:</strong> <code>https://repo-arg-backend.onrender.com/api/webhooks/github</code></li>
+        <li><strong>Content type:</strong> <code>application/json</code></li>
+        <li><strong>Secret:</strong> <em>(Provided during setup)</em></li>
+        <li><strong>Events:</strong> Select <code>Just the push event</code> or <code>Send me everything</code>.</li>
+      </ol>
+      <div class="info-note">
+        <mat-icon>lightbulb</mat-icon>
+        <span>Once configured, any push or activity will automatically update the RepoArg dashboard in real-time.</span>
+      </div>
+    </div>
   </div>
 
   <!-- Filter & Search Section -->

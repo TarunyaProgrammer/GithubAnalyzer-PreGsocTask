@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, timer, take } from 'rxjs';
 import { RepositoryService, Repository, StatsResponse } from '../../core/services/repository.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { NumberFormatPipe } from '../../shared/pipes/number-format.pipe';
@@ -50,6 +50,7 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
 
   analyzing = false;
   analyzeMessage = '';
+  showWebhookInfo = false;
 
   private destroy$ = new Subject<void>();
   readonly SKELETON_ITEMS = Array(12).fill(0);
@@ -170,6 +171,10 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/repo', id]);
   }
 
+  toggleWebhookInfo(): void {
+    this.showWebhookInfo = !this.showWebhookInfo;
+  }
+
   analyzeRepos(): void {
     const urls = this.analyzeControl.value?.split(',').map(url => url.trim()).filter(url => url);
     if (!urls || urls.length === 0) return;
@@ -182,6 +187,7 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
         this.analyzing = false;
         this.analyzeMessage = res.message;
         this.analyzeControl.setValue('');
+        this.startPolling();
         setTimeout(() => this.analyzeMessage = '', 5000);
       },
       error: () => {
@@ -189,6 +195,17 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
         this.analyzeMessage = 'Failed to queue analysis. Please check your URLs.';
         setTimeout(() => this.analyzeMessage = '', 5000);
       }
+    });
+  }
+
+  startPolling(): void {
+    // Poll every 5 seconds, up to 12 times (1 minute total)
+    timer(5000, 5000).pipe(
+      take(12),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.loadStats();
+      this.loadRepositories();
     });
   }
 }
