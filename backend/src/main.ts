@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters';
 import * as bodyParser from 'body-parser';
@@ -30,6 +31,14 @@ async function bootstrap(): Promise<void> {
   // Standard JSON parser for all other routes
   app.use(bodyParser.json());
 
+  // Simple request logging middleware
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    logger.log(
+      `Incoming Request: ${req.method} ${req.url} - Origin: ${req.get('origin') || 'None'}`,
+    );
+    next();
+  });
+
   // Global prefix
   app.setGlobalPrefix('api');
 
@@ -45,21 +54,9 @@ async function bootstrap(): Promise<void> {
   // Global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // CORS for Angular frontend
+  // CORS - Allow all origins temporarily for debugging
   app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) => {
-      // Allow localhost for development and any vercel.app subdomain for production
-      const allowedPatterns = [/^http:\/\/localhost:\d+$/, /\.vercel\.app$/];
-
-      if (!origin || allowedPatterns.some((pattern) => pattern.test(origin))) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   });
