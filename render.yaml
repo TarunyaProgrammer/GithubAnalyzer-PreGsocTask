@@ -3,9 +3,10 @@ services:
   - type: web
     name: webiu-backend
     env: node
+    rootDir: backend # Tell Render the app is in the backend/ folder
     plan: free
-    buildCommand: cd backend && npm install && npx prisma generate && npm run build
-    startCommand: cd backend && npm run start:prod
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
@@ -27,11 +28,11 @@ services:
       - key: GITHUB_WEBHOOK_SECRET
         sync: false
 
-  # Redis Instance
+  # Redis Instance (Key Value)
   - type: redis
     name: webiu-redis
-    plan: free # Render Free tier Redis (shared)
-    ipAllowList: [] # Only allow internal connections
+    plan: free # Render Free tier Redis
+    ipAllowList: [] # Only allow internal connections from other services
 
 databases:
   - name: webiu-db

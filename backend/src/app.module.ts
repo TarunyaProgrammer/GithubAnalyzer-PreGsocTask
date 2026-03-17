@@ -6,6 +6,7 @@ import { CacheModule } from './modules/cache';
 import { RepositoryModule } from './modules/repository';
 import { WebhookModule } from './modules/webhook';
 import { SyncModule } from './modules/sync';
+import { HealthModule } from './modules/health/health.module';
 import { validate } from './config';
 
 @Module({
@@ -19,14 +20,11 @@ import { validate } from './config';
 
     // BullMQ — Redis-backed job queue
     BullModule.forRoot({
-      redis: {
-        host: process.env['REDIS_URL']?.replace('redis://', '').split(':')[0] ?? 'localhost',
-        port: parseInt(
-          process.env['REDIS_URL']?.replace('redis://', '').split(':')[1] ?? '6379',
-          10,
-        ),
-      },
+      url: process.env['REDIS_URL'] || 'redis://localhost:6379',
     }),
+
+    // Health Check
+    HealthModule,
 
     // Database
     PrismaModule,
