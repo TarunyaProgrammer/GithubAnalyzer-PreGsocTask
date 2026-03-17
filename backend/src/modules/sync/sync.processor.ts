@@ -26,7 +26,9 @@ export class SyncProcessor {
   async handleSyncJob(job: Job<SyncJobPayload>): Promise<void> {
     const { repoName, repoFullName, eventType } = job.data;
     const org = this.configService.get<string>('GITHUB_ORG', 'c2siorg');
-    this.logger.log(`Processing sync job: ${repoFullName} (event: ${eventType})`);
+    this.logger.log(
+      `Processing sync job: ${repoFullName} (event: ${eventType})`,
+    );
 
     try {
       // 1. Fetch repo metadata via GraphQL

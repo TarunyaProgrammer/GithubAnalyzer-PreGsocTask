@@ -58,7 +58,9 @@ export class WebhookController {
       return { received: true, status: 'ignored_duplicate' };
     }
 
-    this.logger.log(`Received webhook: event="${eventType}", repo="${repoFullName}"`);
+    this.logger.log(
+      `Received webhook: event="${eventType}", repo="${repoFullName}"`,
+    );
 
     // 2. Queue for Processing
     // High priority for real-time triggered syncs

@@ -75,7 +75,9 @@ export class RepositoryController {
    * GET /api/repos/:id/contributors — Contributor list
    */
   @Get(':id/contributors')
-  async getContributors(@Param('id') id: string): Promise<ContributorResponseDto[]> {
+  async getContributors(
+    @Param('id') id: string,
+  ): Promise<ContributorResponseDto[]> {
     return this.repositoryService.getContributors(id);
   }
 
@@ -91,7 +93,9 @@ export class RepositoryController {
    * GET /api/repos/:id/activity — 52-week commit activity
    */
   @Get(':id/activity')
-  async getActivity(@Param('id') id: string): Promise<CommitActivityResponseDto[]> {
+  async getActivity(
+    @Param('id') id: string,
+  ): Promise<CommitActivityResponseDto[]> {
     return this.repositoryService.getActivity(id);
   }
 
@@ -99,7 +103,9 @@ export class RepositoryController {
    * POST /api/repos/analyze - Queue custom repository URLs for analysis
    */
   @Post('analyze')
-  async analyzeRepositories(@Body() body: AnalyzeUrlsDto): Promise<{ message: string; queued: number }> {
+  async analyzeRepositories(
+    @Body() body: AnalyzeUrlsDto,
+  ): Promise<{ message: string; queued: number }> {
     return this.repositoryService.analyzeRepositories(body.urls);
   }
 
@@ -107,7 +113,9 @@ export class RepositoryController {
    * GET /api/repos/:id/report - Get structured analysis report
    */
   @Get(':id/report')
-  async getAnalysisReport(@Param('id') id: string): Promise<AnalysisReportResponseDto> {
+  async getAnalysisReport(
+    @Param('id') id: string,
+  ): Promise<AnalysisReportResponseDto> {
     return this.repositoryService.getAnalysisReport(id);
   }
 }

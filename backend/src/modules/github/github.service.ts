@@ -95,7 +95,8 @@ export class GitHubService {
         // Monitor rate limit
         const headers = response.headers;
         this.monitorRateLimit({
-          remaining: parseInt(headers['x-ratelimit-remaining'] as string, 10) || 5000,
+          remaining:
+            parseInt(headers['x-ratelimit-remaining'] as string, 10) || 5000,
           limit: parseInt(headers['x-ratelimit-limit'] as string, 10) || 5000,
           reset: parseInt(headers['x-ratelimit-reset'] as string, 10) || 0,
           used: parseInt(headers['x-ratelimit-used'] as string, 10) || 0,
@@ -125,7 +126,9 @@ export class GitHubService {
    * Build and execute a GraphQL batch query for multiple repositories.
    * Fetches up to 100 repos in a single API request using field aliases.
    */
-  async batchFetchRepos(repoNames: string[]): Promise<Map<string, GitHubGraphQLRepo>> {
+  async batchFetchRepos(
+    repoNames: string[],
+  ): Promise<Map<string, GitHubGraphQLRepo>> {
     this.checkCircuitBreaker();
 
     const results = new Map<string, GitHubGraphQLRepo>();
@@ -158,7 +161,8 @@ export class GitHubService {
       const query = `query BatchRepos { ${queryParts.join('\n')} }`;
 
       try {
-        const response = await this.graphqlClient<Record<string, GitHubGraphQLRepo>>(query);
+        const response =
+          await this.graphqlClient<Record<string, GitHubGraphQLRepo>>(query);
 
         // Extract rate limit from response headers (captured via graphql client)
         chunk.forEach((name, idx) => {
@@ -172,7 +176,9 @@ export class GitHubService {
           `Batch fetched ${chunk.length} repos (chunk ${Math.floor(i / 100) + 1}/${Math.ceil(repoNames.length / 100)})`,
         );
       } catch (err) {
-        this.logger.error(`GraphQL batch fetch failed: ${(err as Error).message}`);
+        this.logger.error(
+          `GraphQL batch fetch failed: ${(err as Error).message}`,
+        );
         // On rate limit errors, open circuit breaker
         if ((err as Record<string, unknown>)['status'] === 403) {
           this.circuitBreakerOpen = true;
@@ -214,10 +220,14 @@ export class GitHubService {
         }
       }`;
 
-      const response = await this.graphqlClient<{ repository: GitHubGraphQLRepo }>(query);
+      const response = await this.graphqlClient<{
+        repository: GitHubGraphQLRepo;
+      }>(query);
       return response.repository;
     } catch (err) {
-      this.logger.error(`Failed to fetch repo "${repoName}": ${(err as Error).message}`);
+      this.logger.error(
+        `Failed to fetch repo "${repoName}": ${(err as Error).message}`,
+      );
       return null;
     }
   }
@@ -248,9 +258,13 @@ export class GitHubService {
 
       // Monitor rate limit
       this.monitorRateLimit({
-        remaining: parseInt(response.headers['x-ratelimit-remaining'] as string, 10) || 5000,
-        limit: parseInt(response.headers['x-ratelimit-limit'] as string, 10) || 5000,
-        reset: parseInt(response.headers['x-ratelimit-reset'] as string, 10) || 0,
+        remaining:
+          parseInt(response.headers['x-ratelimit-remaining'] as string, 10) ||
+          5000,
+        limit:
+          parseInt(response.headers['x-ratelimit-limit'] as string, 10) || 5000,
+        reset:
+          parseInt(response.headers['x-ratelimit-reset'] as string, 10) || 0,
         used: parseInt(response.headers['x-ratelimit-used'] as string, 10) || 0,
       });
 
@@ -259,13 +273,15 @@ export class GitHubService {
         await this.cacheService.set(etagKey, response.headers.etag, 86400);
       }
 
-      const contributors: GitHubContributor[] = (response.data || []).map((c) => ({
-        id: c.id ?? 0,
-        login: c.login ?? 'unknown',
-        avatar_url: c.avatar_url ?? '',
-        html_url: c.html_url ?? '',
-        contributions: c.contributions,
-      }));
+      const contributors: GitHubContributor[] = (response.data || []).map(
+        (c) => ({
+          id: c.id ?? 0,
+          login: c.login ?? 'unknown',
+          avatar_url: c.avatar_url ?? '',
+          html_url: c.html_url ?? '',
+          contributions: c.contributions,
+        }),
+      );
 
       // Cache the data
       await this.cacheService.set(dataKey, contributors, 86400);
@@ -274,11 +290,14 @@ export class GitHubService {
     } catch (err) {
       // On 304 Not Modified, return cached data
       if ((err as Record<string, unknown>)['status'] === 304) {
-        const cached = await this.cacheService.get<GitHubContributor[]>(dataKey);
+        const cached =
+          await this.cacheService.get<GitHubContributor[]>(dataKey);
         return cached ?? [];
       }
 
-      this.logger.error(`Failed to fetch contributors for "${repoName}": ${(err as Error).message}`);
+      this.logger.error(
+        `Failed to fetch contributors for "${repoName}": ${(err as Error).message}`,
+      );
       // Return cached data on error
       const cached = await this.cacheService.get<GitHubContributor[]>(dataKey);
       return cached ?? [];
@@ -308,9 +327,13 @@ export class GitHubService {
       });
 
       this.monitorRateLimit({
-        remaining: parseInt(response.headers['x-ratelimit-remaining'] as string, 10) || 5000,
-        limit: parseInt(response.headers['x-ratelimit-limit'] as string, 10) || 5000,
-        reset: parseInt(response.headers['x-ratelimit-reset'] as string, 10) || 0,
+        remaining:
+          parseInt(response.headers['x-ratelimit-remaining'] as string, 10) ||
+          5000,
+        limit:
+          parseInt(response.headers['x-ratelimit-limit'] as string, 10) || 5000,
+        reset:
+          parseInt(response.headers['x-ratelimit-reset'] as string, 10) || 0,
         used: parseInt(response.headers['x-ratelimit-used'] as string, 10) || 0,
       });
 
@@ -328,7 +351,9 @@ export class GitHubService {
         return cached ?? {};
       }
 
-      this.logger.error(`Failed to fetch languages for "${repoName}": ${(err as Error).message}`);
+      this.logger.error(
+        `Failed to fetch languages for "${repoName}": ${(err as Error).message}`,
+      );
       const cached = await this.cacheService.get<GitHubLanguages>(dataKey);
       return cached ?? {};
     }
@@ -347,21 +372,29 @@ export class GitHubService {
       });
 
       this.monitorRateLimit({
-        remaining: parseInt(response.headers['x-ratelimit-remaining'] as string, 10) || 5000,
-        limit: parseInt(response.headers['x-ratelimit-limit'] as string, 10) || 5000,
-        reset: parseInt(response.headers['x-ratelimit-reset'] as string, 10) || 0,
+        remaining:
+          parseInt(response.headers['x-ratelimit-remaining'] as string, 10) ||
+          5000,
+        limit:
+          parseInt(response.headers['x-ratelimit-limit'] as string, 10) || 5000,
+        reset:
+          parseInt(response.headers['x-ratelimit-reset'] as string, 10) || 0,
         used: parseInt(response.headers['x-ratelimit-used'] as string, 10) || 0,
       });
 
       // GitHub may return 202 (computing stats) — retry after a delay
       if (response.status === 202) {
-        this.logger.log(`Commit activity computing for "${repoName}" — will retry later`);
+        this.logger.log(
+          `Commit activity computing for "${repoName}" — will retry later`,
+        );
         return [];
       }
 
       return (response.data as GitHubCommitActivity[]) || [];
     } catch (err) {
-      this.logger.error(`Failed to fetch commit activity for "${repoName}": ${(err as Error).message}`);
+      this.logger.error(
+        `Failed to fetch commit activity for "${repoName}": ${(err as Error).message}`,
+      );
       return [];
     }
   }

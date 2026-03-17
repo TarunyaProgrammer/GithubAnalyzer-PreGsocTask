@@ -1,4 +1,11 @@
-import { IsOptional, IsString, IsNumber, IsBoolean, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsBoolean,
+  Min,
+  Max,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class RepoQueryDto {

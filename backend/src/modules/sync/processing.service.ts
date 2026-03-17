@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { GitHubGraphQLRepo, GitHubContributor, GitHubLanguages, GitHubCommitActivity } from '../github';
+import {
+  GitHubGraphQLRepo,
+  GitHubContributor,
+  GitHubLanguages,
+  GitHubCommitActivity,
+} from '../github';
 
 /**
  * Transforms raw GitHub API responses into Prisma-compatible upsert payloads.

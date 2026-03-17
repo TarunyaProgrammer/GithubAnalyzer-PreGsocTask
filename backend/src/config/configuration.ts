@@ -2,7 +2,9 @@ import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { EnvironmentVariables } from './env.validation';
 
-export function validate(config: Record<string, unknown>): EnvironmentVariables {
+export function validate(
+  config: Record<string, unknown>,
+): EnvironmentVariables {
   const validatedConfig = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });
@@ -14,7 +16,9 @@ export function validate(config: Record<string, unknown>): EnvironmentVariables 
   if (errors.length > 0) {
     const errorMessages = errors
       .map((err) => {
-        const constraints = err.constraints ? Object.values(err.constraints).join(', ') : 'unknown error';
+        const constraints = err.constraints
+          ? Object.values(err.constraints).join(', ')
+          : 'unknown error';
         return `  - ${err.property}: ${constraints}`;
       })
       .join('\n');

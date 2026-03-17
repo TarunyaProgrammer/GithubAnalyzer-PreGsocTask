@@ -19,8 +19,18 @@ export interface AnalysisResult {
 
 // Languages that typically have a dependency/package file
 const DEPENDENCY_LANGUAGES = new Set([
-  'JavaScript', 'TypeScript', 'Python', 'Rust', 'Go', 'Java',
-  'Kotlin', 'Swift', 'PHP', 'Ruby', 'C#', 'Dart',
+  'JavaScript',
+  'TypeScript',
+  'Python',
+  'Rust',
+  'Go',
+  'Java',
+  'Kotlin',
+  'Swift',
+  'PHP',
+  'Ruby',
+  'C#',
+  'Dart',
 ]);
 
 @Injectable()
@@ -65,13 +75,15 @@ export class AnalyzerService {
 
       this.logger.log(
         `Analyzed "${repo.fullName}": activity=${result.activityScore.toFixed(1)} ` +
-        `complexity=${result.complexityScore.toFixed(1)} ` +
-        `difficulty=${result.learningDifficulty}`,
+          `complexity=${result.complexityScore.toFixed(1)} ` +
+          `difficulty=${result.learningDifficulty}`,
       );
 
       return result;
     } catch (err) {
-      this.logger.error(`Analysis failed for repo ID ${repoId}: ${(err as Error).message}`);
+      this.logger.error(
+        `Analysis failed for repo ID ${repoId}: ${(err as Error).message}`,
+      );
       return null;
     }
   }
@@ -104,8 +116,10 @@ export class AnalyzerService {
     );
 
     // Check if primary language implies a dependency file exists
-    const primaryLangs = repo.languages.map(l => l.language);
-    const hasDependencyFile = primaryLangs.some(l => DEPENDENCY_LANGUAGES.has(l));
+    const primaryLangs = repo.languages.map((l) => l.language);
+    const hasDependencyFile = primaryLangs.some((l) =>
+      DEPENDENCY_LANGUAGES.has(l),
+    );
 
     // ── Activity Score ──────────────────────────────────────────
     // commit frequency:    40 pts (normalized to ~1 commit/week over 12 weeks)
@@ -132,9 +146,9 @@ export class AnalyzerService {
     // topic richness:      10 pts (>5 topics = broad/complex scope)
     const complexityScore = clamp(
       Math.min(languageCount / 5, 1) * 40 +
-      Math.min(repoSizeKB / 10_000, 1) * 30 +
-      (hasDependencyFile ? 20 : 0) +
-      (topicCount > 5 ? 10 : 0),
+        Math.min(repoSizeKB / 10_000, 1) * 30 +
+        (hasDependencyFile ? 20 : 0) +
+        (topicCount > 5 ? 10 : 0),
       0,
       100,
     );

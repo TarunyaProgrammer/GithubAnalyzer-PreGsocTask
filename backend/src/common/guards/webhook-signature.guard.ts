@@ -24,7 +24,9 @@ export class WebhookSignatureGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-    const signature = request.headers['x-hub-signature-256'] as string | undefined;
+    const signature = request.headers['x-hub-signature-256'] as
+      | string
+      | undefined;
 
     if (!signature) {
       this.logger.warn(`Webhook request missing signature from ${request.ip}`);
@@ -33,7 +35,9 @@ export class WebhookSignatureGuard implements CanActivate {
 
     const rawBody = (request as Request & { rawBody?: Buffer }).rawBody;
     if (!rawBody) {
-      this.logger.error('Raw body not available — bodyParser must preserve raw body');
+      this.logger.error(
+        'Raw body not available — bodyParser must preserve raw body',
+      );
       throw new UnauthorizedException('Cannot validate signature');
     }
 

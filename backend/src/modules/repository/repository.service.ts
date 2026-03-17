@@ -48,7 +48,9 @@ export class RepositoryService {
       topics: (repo['topics'] as string[]) ?? [],
       licenseName: (repo['licenseName'] as string) ?? null,
       defaultBranch: repo['defaultBranch'] as string,
-      lastPushedAt: repo['lastPushedAt'] ? (repo['lastPushedAt'] as Date).toISOString() : null,
+      lastPushedAt: repo['lastPushedAt']
+        ? (repo['lastPushedAt'] as Date).toISOString()
+        : null,
       githubCreatedAt: (repo['githubCreatedAt'] as Date).toISOString(),
       syncedAt: (repo['syncedAt'] as Date).toISOString(),
       updatedAt: (repo['updatedAt'] as Date).toISOString(),
@@ -58,12 +60,31 @@ export class RepositoryService {
   /**
    * Get paginated list of repos with cursor-based pagination.
    */
-  async getRepositories(query: RepoQueryDto): Promise<PaginatedResponseDto<RepositoryResponseDto>> {
-    const { cursor, perPage = 20, sort = 'stars_desc', language, topic, minStars, archived } = query;
+  async getRepositories(
+    query: RepoQueryDto,
+  ): Promise<PaginatedResponseDto<RepositoryResponseDto>> {
+    try {
+      const {
+      cursor,
+      perPage = 20,
+      sort = 'stars_desc',
+      language,
+      topic,
+      minStars,
+      archived,
+    } = query;
 
     // Check cache
-    const cacheKey = CACHE_KEYS.repoList(cursor ?? null, perPage, sort, language ?? null);
-    const cached = await this.cache.get<PaginatedResponseDto<RepositoryResponseDto>>(cacheKey);
+    const cacheKey = CACHE_KEYS.repoList(
+      cursor ?? null,
+      perPage,
+      sort,
+      language ?? null,
+    );
+    const cached =
+      await this.cache.get<PaginatedResponseDto<RepositoryResponseDto>>(
+        cacheKey,
+      );
     if (cached) return cached;
 
     // Build where clause
@@ -118,15 +139,18 @@ export class RepositoryService {
 
     const hasMore = repos.length > perPage;
     const data = hasMore ? repos.slice(0, perPage) : repos;
-    const nextCursor = hasMore && data.length > 0
-      ? Buffer.from(String(data[data.length - 1].id)).toString('base64')
-      : null;
+    const nextCursor =
+      hasMore && data.length > 0
+        ? Buffer.from(String(data[data.length - 1].id)).toString('base64')
+        : null;
 
     // Total count (cached separately)
     const total = await this.prisma.repository.count({ where });
 
     const result: PaginatedResponseDto<RepositoryResponseDto> = {
-      data: data.map((r) => this.toDto(r as unknown as Record<string, unknown>)),
+      data: data.map((r) =>
+        this.toDto(r as unknown as Record<string, unknown>),
+      ),
       pagination: {
         nextCursor,
         hasMore,
@@ -136,6 +160,10 @@ export class RepositoryService {
 
     await this.cache.set(cacheKey, result, CACHE_TTLS.REPO_LIST);
     return result;
+    } catch (error) {
+      this.logger.error(`Failed to fetch repositories: ${(error as Error).message}`, (error as Error).stack);
+      throw error;
+    }
   }
 
   /**
@@ -184,7 +212,10 @@ export class RepositoryService {
   /**
    * Search repos by name, description, or topics.
    */
-  async searchRepositories(q: string, limit: number = 20): Promise<RepositoryResponseDto[]> {
+  async searchRepositories(
+    q: string,
+    limit: number = 20,
+  ): Promise<RepositoryResponseDto[]> {
     const queryHash = crypto.createHash('md5').update(q).digest('hex');
     const cacheKey = CACHE_KEYS.repoSearch(queryHash);
 
@@ -228,7 +259,9 @@ export class RepositoryService {
       },
     });
 
-    const dtos = repos.map((r) => this.toDto(r as unknown as Record<string, unknown>));
+    const dtos = repos.map((r) =>
+      this.toDto(r as unknown as Record<string, unknown>),
+    );
     await this.cache.set(cacheKey, dtos, CACHE_TTLS.REPO_SEARCH);
     return dtos;
   }
@@ -337,47 +370,48 @@ export class RepositoryService {
     const cached = await this.cache.get<StatsResponseDto>(cacheKey);
     if (cached) return cached;
 
-    const [totalRepos, aggregates, contributorCount, languageGroups, topRepos] = await Promise.all([
-      this.prisma.repository.count({ where: { isActive: true } }),
-      this.prisma.repository.aggregate({
-        where: { isActive: true },
-        _sum: { starsCount: true, forksCount: true },
-      }),
-      this.prisma.contributor.count(),
-      this.prisma.repositoryLanguage.groupBy({
-        by: ['language'],
-        _count: { language: true },
-        orderBy: { _count: { language: 'desc' } },
-        take: 20,
-      }),
-      this.prisma.repository.findMany({
-        where: { isActive: true },
-        orderBy: { starsCount: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          name: true,
-          fullName: true,
-          description: true,
-          htmlUrl: true,
-          starsCount: true,
-          forksCount: true,
-          openIssuesCount: true,
-          isArchived: true,
-          activityScore: true,
-          complexityScore: true,
-          learningDifficulty: true,
-          primaryLanguage: true,
-          topics: true,
-          licenseName: true,
-          defaultBranch: true,
-          lastPushedAt: true,
-          githubCreatedAt: true,
-          syncedAt: true,
-          updatedAt: true,
-        },
-      }),
-    ]);
+    const [totalRepos, aggregates, contributorCount, languageGroups, topRepos] =
+      await Promise.all([
+        this.prisma.repository.count({ where: { isActive: true } }),
+        this.prisma.repository.aggregate({
+          where: { isActive: true },
+          _sum: { starsCount: true, forksCount: true },
+        }),
+        this.prisma.contributor.count(),
+        this.prisma.repositoryLanguage.groupBy({
+          by: ['language'],
+          _count: { language: true },
+          orderBy: { _count: { language: 'desc' } },
+          take: 20,
+        }),
+        this.prisma.repository.findMany({
+          where: { isActive: true },
+          orderBy: { starsCount: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            name: true,
+            fullName: true,
+            description: true,
+            htmlUrl: true,
+            starsCount: true,
+            forksCount: true,
+            openIssuesCount: true,
+            isArchived: true,
+            activityScore: true,
+            complexityScore: true,
+            learningDifficulty: true,
+            primaryLanguage: true,
+            topics: true,
+            licenseName: true,
+            defaultBranch: true,
+            lastPushedAt: true,
+            githubCreatedAt: true,
+            syncedAt: true,
+            updatedAt: true,
+          },
+        }),
+      ]);
 
     const stats: StatsResponseDto = {
       totalRepositories: totalRepos,
@@ -388,7 +422,9 @@ export class RepositoryService {
         language: g.language,
         count: g._count.language,
       })),
-      topRepositories: topRepos.map((r) => this.toDto(r as unknown as Record<string, unknown>)),
+      topRepositories: topRepos.map((r) =>
+        this.toDto(r as unknown as Record<string, unknown>),
+      ),
     };
 
     await this.cache.set(cacheKey, stats, CACHE_TTLS.STATS);
@@ -398,7 +434,9 @@ export class RepositoryService {
   /**
    * Build Prisma orderBy from sort string.
    */
-  private buildOrderBy(sort: string): Prisma.RepositoryOrderByWithRelationInput {
+  private buildOrderBy(
+    sort: string,
+  ): Prisma.RepositoryOrderByWithRelationInput {
     switch (sort) {
       case 'stars_desc':
         return { starsCount: 'desc' };
@@ -418,7 +456,9 @@ export class RepositoryService {
   /**
    * Queue custom repository URLs for analysis.
    */
-  async analyzeRepositories(urls: string[]): Promise<{ message: string; queued: number }> {
+  async analyzeRepositories(
+    urls: string[],
+  ): Promise<{ message: string; queued: number }> {
     let queued = 0;
     for (const url of urls) {
       try {
@@ -426,7 +466,7 @@ export class RepositoryService {
         if (match && match[1]) {
           let fullName = match[1];
           if (fullName.endsWith('.git')) fullName = fullName.slice(0, -4);
-          
+
           await this.sync.enqueueRepoSync(fullName, 'manual-analyze', 1);
           queued++;
         }
@@ -467,11 +507,13 @@ export class RepositoryService {
       },
       breakdown: analysis.breakdown,
       formulas: {
-        activityScore: 'min(commits/52,1)×40 + min(contributors/20,1)×30 + issues×20 + stars×10',
-        complexityScore: 'min(languages/5,1)×40 + min(sizeKB/10000,1)×30 + deps×20 + topics×10',
-        learningDifficulty: 'combined=(activity×0.4)+(complexity×0.6); <35=Beginner, <65=Intermediate, ≥65=Advanced',
+        activityScore:
+          'min(commits/52,1)×40 + min(contributors/20,1)×30 + issues×20 + stars×10',
+        complexityScore:
+          'min(languages/5,1)×40 + min(sizeKB/10000,1)×30 + deps×20 + topics×10',
+        learningDifficulty:
+          'combined=(activity×0.4)+(complexity×0.6); <35=Beginner, <65=Intermediate, ≥65=Advanced',
       },
     };
   }
 }
-

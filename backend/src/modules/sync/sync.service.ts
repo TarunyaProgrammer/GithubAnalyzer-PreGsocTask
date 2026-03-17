@@ -46,7 +46,7 @@ export class SyncService {
         delay: 2000,
       },
       removeOnComplete: 100, // Keep last 100 completed jobs
-      removeOnFail: 50,      // Keep last 50 failed jobs
+      removeOnFail: 50, // Keep last 50 failed jobs
     });
 
     this.logger.log(`Enqueued sync for "${fullName}" (event: ${eventType})`);
@@ -83,7 +83,9 @@ export class SyncService {
       select: { fullName: true },
     });
 
-    this.logger.log(`Found ${staleRepos.length} stale repos (>6h since last sync)`);
+    this.logger.log(
+      `Found ${staleRepos.length} stale repos (>6h since last sync)`,
+    );
 
     for (const repo of staleRepos) {
       await this.enqueueRepoSync(repo.fullName, 'scheduled-incremental', 8);

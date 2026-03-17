@@ -33,7 +33,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message =
         typeof exceptionResponse === 'string'
           ? exceptionResponse
-          : (exceptionResponse as Record<string, unknown>)['message'] as string || exception.message;
+          : ((exceptionResponse as Record<string, unknown>)[
+              'message'
+            ] as string) || exception.message;
     } else if (exception instanceof Error) {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'Internal server error';

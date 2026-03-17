@@ -18,7 +18,10 @@ export class CacheService implements OnModuleDestroy {
     });
 
     // L2: Redis
-    const redisUrl = this.configService.get<string>('REDIS_URL', 'redis://localhost:6379');
+    const redisUrl = this.configService.get<string>(
+      'REDIS_URL',
+      'redis://localhost:6379',
+    );
     this.redis = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       retryStrategy: (times: number): number | null => {
@@ -72,7 +75,9 @@ export class CacheService implements OnModuleDestroy {
         return parsed;
       }
     } catch (err) {
-      this.logger.warn(`Redis GET error for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Redis GET error for key "${key}": ${(err as Error).message}`,
+      );
     }
 
     return null;
@@ -91,7 +96,9 @@ export class CacheService implements OnModuleDestroy {
       const serialized = JSON.stringify(value);
       await this.redis.setex(key, ttlSeconds, serialized);
     } catch (err) {
-      this.logger.warn(`Redis SET error for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Redis SET error for key "${key}": ${(err as Error).message}`,
+      );
     }
   }
 
@@ -103,7 +110,9 @@ export class CacheService implements OnModuleDestroy {
     try {
       await this.redis.del(key);
     } catch (err) {
-      this.logger.warn(`Redis DEL error for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Redis DEL error for key "${key}": ${(err as Error).message}`,
+      );
     }
   }
 
@@ -125,14 +134,22 @@ export class CacheService implements OnModuleDestroy {
     try {
       let cursor = '0';
       do {
-        const [nextCursor, keys] = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+        const [nextCursor, keys] = await this.redis.scan(
+          cursor,
+          'MATCH',
+          pattern,
+          'COUNT',
+          100,
+        );
         cursor = nextCursor;
         if (keys.length > 0) {
           await this.redis.del(...keys);
         }
       } while (cursor !== '0');
     } catch (err) {
-      this.logger.warn(`Redis SCAN/DEL error for pattern "${pattern}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Redis SCAN/DEL error for pattern "${pattern}": ${(err as Error).message}`,
+      );
     }
   }
 
@@ -142,10 +159,18 @@ export class CacheService implements OnModuleDestroy {
    */
   async acquireLock(key: string, ttlMs: number): Promise<boolean> {
     try {
-      const result = await this.redis.set(`lock:${key}`, '1', 'PX', ttlMs, 'NX');
+      const result = await this.redis.set(
+        `lock:${key}`,
+        '1',
+        'PX',
+        ttlMs,
+        'NX',
+      );
       return result === 'OK';
     } catch (err) {
-      this.logger.warn(`Redis lock error for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Redis lock error for key "${key}": ${(err as Error).message}`,
+      );
       return true; // On Redis failure, allow the query to proceed
     }
   }
@@ -157,7 +182,9 @@ export class CacheService implements OnModuleDestroy {
     try {
       await this.redis.del(`lock:${key}`);
     } catch (err) {
-      this.logger.warn(`Redis unlock error for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Redis unlock error for key "${key}": ${(err as Error).message}`,
+      );
     }
   }
 
@@ -165,7 +192,10 @@ export class CacheService implements OnModuleDestroy {
    * Wait for a lock to be released, then return the cached value.
    * Used when another worker is already populating the cache.
    */
-  async waitForValue<T>(key: string, maxWaitMs: number = 5000): Promise<T | null> {
+  async waitForValue<T>(
+    key: string,
+    maxWaitMs: number = 5000,
+  ): Promise<T | null> {
     const pollInterval = 100;
     let waited = 0;
 

@@ -1,6 +1,11 @@
 export const CACHE_KEYS = {
   repo: (id: bigint | string): string => `repo:${id}`,
-  repoList: (cursor: string | null, perPage: number, sort: string, lang: string | null): string =>
+  repoList: (
+    cursor: string | null,
+    perPage: number,
+    sort: string,
+    lang: string | null,
+  ): string =>
     `repo:list:${cursor ?? 'first'}:${perPage}:${sort}:${lang ?? 'all'}`,
   repoSearch: (queryHash: string): string => `repo:search:${queryHash}`,
   contributors: (id: bigint | string): string => `repo:${id}:contributors`,
@@ -15,8 +20,8 @@ export const CACHE_TTLS = {
   REPO_LIST: 300,
   REPO_SEARCH: 300,
   CONTRIBUTORS: 86400, // 24h
-  LANGUAGES: 3600,     // 1h
-  ACTIVITY: 3600,      // 1h
+  LANGUAGES: 3600, // 1h
+  ACTIVITY: 3600, // 1h
   STATS: 300,
 
   // L1 in-memory TTLs (in seconds)
