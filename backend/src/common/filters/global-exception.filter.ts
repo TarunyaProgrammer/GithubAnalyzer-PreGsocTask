@@ -38,14 +38,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             ] as string) || exception.message;
     } else if (exception instanceof Error) {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+      // In production, we usually want to hide internal errors, 
+      // but we need this to find the root cause on Render.
+      message = exception.message || 'Internal server error';
       this.logger.error(
         `Unhandled exception: ${exception.message}`,
         exception.stack,
       );
     } else {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
+      message = 'Unknown error occurred';
       this.logger.error(`Unknown exception: ${JSON.stringify(exception)}`);
     }
 
