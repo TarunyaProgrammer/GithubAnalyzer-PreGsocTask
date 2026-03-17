@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma';
 import { GitHubService } from '../github';
 import { CacheService, CACHE_KEYS } from '../cache';
 import { AnalyzerService } from '../analyzer';
+import { ConfigService } from '@nestjs/config';
 import { ProcessingService } from './processing.service';
 import { SyncJobPayload, SYNC_QUEUE_NAME } from './sync.service';
 
@@ -18,11 +19,13 @@ export class SyncProcessor {
     private readonly cache: CacheService,
     private readonly processing: ProcessingService,
     private readonly analyzer: AnalyzerService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Process('sync-repo')
   async handleSyncJob(job: Job<SyncJobPayload>): Promise<void> {
     const { repoName, repoFullName, eventType } = job.data;
+    const org = this.configService.get<string>('GITHUB_ORG', 'c2siorg');
     this.logger.log(`Processing sync job: ${repoFullName} (event: ${eventType})`);
 
     try {
@@ -47,7 +50,7 @@ export class SyncProcessor {
       // Fix fullName using the org
       const orgPrefix = repoFullName.includes('/')
         ? repoFullName.split('/')[0]
-        : 'c2siorg';
+        : org;
       (repoUpsert.create as Record<string, unknown>)['fullName'] =
         `${orgPrefix}/${repoData.name}`;
 
