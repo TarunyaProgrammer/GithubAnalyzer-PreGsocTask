@@ -24,7 +24,7 @@ import {
   AnalysisReportResponseDto,
 } from './repository.dto';
 
-@Controller('api/repos')
+@Controller('repos')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class RepositoryController {
   private readonly logger = new Logger(RepositoryController.name);

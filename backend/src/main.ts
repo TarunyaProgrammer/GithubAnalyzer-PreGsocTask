@@ -15,7 +15,7 @@ async function bootstrap(): Promise<void> {
 
   // Raw body parser for webhook routes (needed for HMAC-SHA256 signature validation)
   app.use(
-    '/webhooks',
+    '/api/webhooks',
     bodyParser.json({
       verify: (
         req: import('http').IncomingMessage,
@@ -29,6 +29,12 @@ async function bootstrap(): Promise<void> {
 
   // Standard JSON parser for all other routes
   app.use(bodyParser.json());
+
+  // Global prefix
+  app.setGlobalPrefix('api');
+
+  // Global prefix
+  app.setGlobalPrefix('api');
 
   // Global validation pipe
   app.useGlobalPipes(
