@@ -10,13 +10,17 @@ export class HealthController {
     try {
       // Ping the database
       await this.prisma.$queryRaw`SELECT 1`;
-      return { status: 'ok', database: 'connected', timestamp: new Date().toISOString() };
+      return {
+        status: 'ok',
+        database: 'connected',
+        timestamp: new Date().toISOString(),
+      };
     } catch (error) {
-      return { 
-        status: 'error', 
-        database: 'disconnected', 
+      return {
+        status: 'error',
+        database: 'disconnected',
         message: (error as Error).message,
-        timestamp: new Date().toISOString() 
+        timestamp: new Date().toISOString(),
       };
     }
   }
