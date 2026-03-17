@@ -24,7 +24,6 @@ export class SyncProcessor {
 
   @Process('sync-repo')
   async handleSyncJob(job: Job<SyncJobPayload>): Promise<void> {
-    const { repoName: jobRepoName, repoFullName, eventType } = job.data;
     const org = this.configService.get<string>('GITHUB_ORG', 'c2siorg');
     
     // Parse owner and repoName from fullName
@@ -40,7 +39,9 @@ export class SyncProcessor {
       // 1. Fetch repo metadata via GraphQL
       const repoData = await this.github.fetchSingleRepo(name, owner);
       if (!repoData) {
-        this.logger.warn(`Repo "${owner}/${name}" not found on GitHub — skipping`);
+        this.logger.warn(
+          `Repo "${owner}/${name}" not found on GitHub — skipping`,
+        );
         return;
       }
 
