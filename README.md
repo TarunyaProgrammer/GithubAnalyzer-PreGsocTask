@@ -4,7 +4,7 @@
 
 Built for the **C2SI GSoC 2026 Pre-Selection Task**, this project demonstrates a robust, scalable architecture using modern full-stack technologies.
 
-![WebiU Preview](Preview.png)
+![RepoArg Preview](Preview.png)
 
 ---
 

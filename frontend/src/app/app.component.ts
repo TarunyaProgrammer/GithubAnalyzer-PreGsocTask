@@ -13,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
       <div class="toolbar-content">
         <span class="logo">
           <mat-icon class="logo-icon">code</mat-icon>
-          WebiU
+          RepoArg
         </span>
         <span class="spacer"></span>
         <a mat-button href="https://github.com/c2siorg" target="_blank">
@@ -22,6 +22,16 @@ import { MatIconModule } from '@angular/material/icon';
         </a>
       </div>
     </mat-toolbar>
+
+    <div class="info-banner">
+      <div class="info-content">
+        <mat-icon class="info-icon">info</mat-icon>
+        <span>
+          This project is developed as a <strong>Pre-GSoC 2026 task</strong> for <strong>C2SI</strong>. 
+          Currently, only repositories within the <strong>C2SI organization</strong> can be analyzed.
+        </span>
+      </div>
+    </div>
     
     <main class="main-content">
       <router-outlet></router-outlet>
@@ -53,6 +63,26 @@ import { MatIconModule } from '@angular/material/icon';
       position: sticky;
       top: 0;
       z-index: 1000;
+    }
+    .info-banner {
+      background-color: #f5f5f5;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      color: #616161;
+    }
+    .info-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+    }
+    .info-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      color: #1976d2;
     }
     .main-content {
       max-width: 1200px;
