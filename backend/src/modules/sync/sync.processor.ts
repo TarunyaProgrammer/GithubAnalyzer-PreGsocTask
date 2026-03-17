@@ -24,6 +24,7 @@ export class SyncProcessor {
 
   @Process('sync-repo')
   async handleSyncJob(job: Job<SyncJobPayload>): Promise<void> {
+    const { repoName: jobRepoName, repoFullName, eventType } = job.data;
     const org = this.configService.get<string>('GITHUB_ORG', 'c2siorg');
     
     // Parse owner and repoName from fullName
